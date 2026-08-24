@@ -1,0 +1,99 @@
+'use client';
+
+import { useEffect, useRef, useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import { GameBoyEngine } from '@/engine';
+import { BootSequence } from './BootSequence';
+import { MainMenu } from './MainMenu';
+
+type AppPhase = 'boot' | 'menu';
+
+interface GameBoyScreenProps {
+  /** When set, skip boot/menu and load game directly (game route). */
+  gameSlug?: string;
+  /** Optional HEX continue code from menu. */
+  saveCode?: string;
+}
+
+/**
+ * Physical Game Boy shell wrapping the 160×144 canvas.
+ */
+export function GameBoyScreen({ gameSlug, saveCode }: GameBoyScreenProps) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [engine, setEngine] = useState<GameBoyEngine | null>(null);
+  const [phase, setPhase] = useState<AppPhase>(gameSlug ? 'menu' : 'boot');
+  const router = useRouter();
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const eng = new GameBoyEngine({ scanlines: true });
+    eng.bindCanvas(canvas, 4);
+    setEngine(eng);
+
+    if (gameSlug) {
+      void (async () => {
+        await eng.initAudio();
+        const { getGameBySlug } = await import('@/games/registry');
+        const { decodeSave } = await import('@/engine');
+        const reg = getGameBySlug(gameSlug);
+        if (reg) {
+          const game = reg.factory();
+          await eng.startGame(game);
+          if (saveCode) {
+            const save = decodeSave(saveCode);
+            if (save && 'loadFromSave' in game) {
+              (game as { loadFromSave: (l: number, s: number, sd: number) => void }).loadFromSave(
+                save.level,
+                save.score,
+                save.seed,
+              );
+            }
+          }
+          eng.start();
+        }
+      })();
+    }
+    // Boot/menu path: BootSequence or MainMenu starts the loop
+
+    return () => {
+      eng.stop();
+      setEngine(null);
+    };
+  }, [gameSlug, saveCode]);
+
+  const handleBootComplete = useCallback(() => {
+    setPhase('menu');
+  }, []);
+
+  const handleSelectGame = useCallback(
+    (slug: string, code?: string) => {
+      engine?.stop();
+      const q = code ? `?code=${encodeURIComponent(code)}` : '';
+      router.push(`/games/${slug}${q}`);
+    },
+    [router, engine],
+  );
+
+  return (
+    <div className="gamebro-page">
+      <div className="gamebro-shell">
+        <div className="gamebro-label">GameBro</div>
+        <div className="gamebro-screen-wrap scanlines">
+          <canvas ref={canvasRef} className="gamebro-canvas" width={640} height={576} />
+          {phase === 'boot' && engine && !gameSlug && (
+            <BootSequence engine={engine} onComplete={handleBootComplete} />
+          )}
+          {phase === 'menu' && !gameSlug && engine && (
+            <MainMenu engine={engine} onSelectGame={handleSelectGame} />
+          )}
+        </div>
+        <p className="gamebro-controls-hint">
+          <kbd>↑↓←→</kbd> / <kbd>WASD</kbd> move · <kbd>Z</kbd>/<kbd>Space</kbd> A ·{' '}
+          <kbd>X</kbd>/<kbd>Shift</kbd> B · <kbd>Enter</kbd> Start
+        </p>
+      </div>
+    </div>
+  );
+}

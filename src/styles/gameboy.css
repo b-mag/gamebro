@@ -1,0 +1,122 @@
+/**
+ * GameBro — authentic Game Boy DMG-01 palette & display chrome.
+ * Four shades only. No gradients in gameplay UI.
+ */
+:root {
+  --gb-darkest: #0f380f;
+  --gb-dark: #306230;
+  --gb-light: #8bac0f;
+  --gb-lightest: #9bbc0f;
+
+  /* Display */
+  --gb-screen-width: 160px;
+  --gb-screen-height: 144px;
+  --gb-scale: 4;
+  --gb-display-width: calc(var(--gb-screen-width) * var(--gb-scale));
+  --gb-display-height: calc(var(--gb-screen-height) * var(--gb-scale));
+
+  /* Shell */
+  --gb-shell: #c4cfa1;
+  --gb-shell-dark: #8b956d;
+  --gb-bezel: #0f380f;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  background: var(--gb-darkest);
+  color: var(--gb-lightest);
+  font-family: "Courier New", Courier, monospace;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.gamebro-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: radial-gradient(ellipse at center, var(--gb-dark) 0%, var(--gb-darkest) 70%);
+}
+
+.gamebro-shell {
+  position: relative;
+  padding: 24px 28px 48px;
+  background: linear-gradient(180deg, var(--gb-shell) 0%, var(--gb-shell-dark) 100%);
+  border-radius: 12px 12px 40px 12px;
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.25),
+    0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+.gamebro-label {
+  font-size: 11px;
+  font-weight: bold;
+  letter-spacing: 0.35em;
+  color: var(--gb-bezel);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  padding-left: 4px;
+}
+
+.gamebro-screen-wrap {
+  position: relative;
+  width: var(--gb-display-width);
+  height: var(--gb-display-height);
+  background: var(--gb-lightest);
+  border: 4px solid var(--gb-bezel);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.gamebro-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* Optional CRT scanlines */
+.gamebro-screen-wrap.scanlines::after {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(15, 56, 15, 0.08) 2px,
+    rgba(15, 56, 15, 0.08) 4px
+  );
+  mix-blend-mode: multiply;
+}
+
+.gamebro-controls-hint {
+  margin-top: 12px;
+  font-size: 10px;
+  color: var(--gb-bezel);
+  text-align: center;
+  line-height: 1.5;
+  max-width: var(--gb-display-width);
+}
+
+.gamebro-controls-hint kbd {
+  display: inline-block;
+  padding: 1px 4px;
+  background: var(--gb-bezel);
+  color: var(--gb-lightest);
+  border-radius: 2px;
+  font-size: 9px;
+}

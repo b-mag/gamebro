@@ -1,0 +1,5 @@
+/* Minimal reset — Game Boy styling lives in gameboy.css */
+body {
+  -webkit-font-smoothing: none;
+  -moz-osx-font-smoothing: grayscale;
+}

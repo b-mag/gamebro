@@ -1,0 +1,3 @@
+# GameBro sound effects are procedurally generated via Web Audio API.
+# See src/engine/audio/AudioEngine.ts — no external assets required.
+# Optional .wav files may be added here for future overrides.
