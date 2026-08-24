@@ -14,11 +14,12 @@ src/
 │   ├── core/               # GameBoyEngine, types, Game interface
 │   ├── input/              # Keyboard → GB button mapping
 │   ├── audio/              # Web Audio chiptune synthesizer
-│   ├── renderer/           # 160×144 canvas + wireframe 3D
-│   └── save/               # HEX continue codes
+│   ├── renderer/           # 160×144 canvas, wireframe 3D, tilemaps
+│   └── save/               # Multi-game HEX continue codes
 ├── games/                  # Individual game implementations
 │   ├── registry.ts         # Central game list
-│   └── eye-of-the-deep/    # First shipped title
+│   ├── eye-of-the-deep/    # Wireframe stealth title
+│   └── castle-vein/        # Metroidvania platformer
 └── styles/
     └── gameboy.css         # 4-shade palette + shell chrome
 ```
@@ -111,7 +112,9 @@ Four shades only (CSS variables in `gameboy.css`):
 
 ## HEX Continue Codes
 
-`encodeSave` / `decodeSave` in `engine/save/HexSaveSystem.ts` pack level, score, and procedural seed into a 15-character hex string with checksum. Displayed between levels in Eye of the Deep; enterable from the main menu (B → type code → A).
+`encodeSave` / `decodeSave` — Eye of the Deep (legacy, 15 chars)  
+`encodeCastleVeinSave` / `decodeAnySave` — multi-game decoder with game ID prefix  
+Castle Vein codes start with `1` and are 17 chars. Menu routes to the correct game via `decodeAnySave`.
 
 ## Eye of the Deep
 

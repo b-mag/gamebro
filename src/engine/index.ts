@@ -22,5 +22,14 @@ export {
   cylinderVertices,
   cylinderEdges,
 } from './renderer/WireframeRenderer';
-export { encodeSave, decodeSave, formatSaveCode } from './save/HexSaveSystem';
-export type { SaveData } from './save/HexSaveSystem';
+export { TileMapRenderer, isSolidTile, isPlatformTile } from './renderer/TileMapRenderer';
+export type { TileDef, TileMapData } from './renderer/TileMapRenderer';
+export {
+  encodeSave,
+  decodeSave,
+  decodeAnySave,
+  encodeCastleVeinSave,
+  formatSaveCode,
+  GAME_SAVE_IDS,
+} from './save/HexSaveSystem';
+export type { SaveData, CastleVeinSaveData, DecodedSave, GameSaveId } from './save/HexSaveSystem';

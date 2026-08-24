@@ -41,6 +41,15 @@ export class AudioEngine {
     }
   }
 
+  /** Expose context for game-specific music sequencers. */
+  getContext(): AudioContext | null {
+    return this.ctx;
+  }
+
+  getMasterGain(): GainNode | null {
+    return this.masterGain;
+  }
+
   setMuted(muted: boolean): void {
     this.muted = muted;
     if (this.masterGain) {

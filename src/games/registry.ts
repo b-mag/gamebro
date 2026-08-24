@@ -1,5 +1,6 @@
 import type { GameFactory, GameMetadata } from '@/engine';
 import { createEyeOfTheDeep } from './eye-of-the-deep';
+import { createCastleVein } from './castle-vein';
 
 export interface RegisteredGame extends GameMetadata {
   factory: GameFactory;
@@ -13,6 +14,13 @@ export const GAME_REGISTRY: RegisteredGame[] = [
     name: 'Eye of the Deep',
     description: 'Sentinel-inspired underwater wireframe stealth.',
     factory: createEyeOfTheDeep,
+  },
+  {
+    id: 'castle-vein',
+    slug: 'castle-vein',
+    name: 'Castle Vein',
+    description: 'Belard explores the cursed castle. GB metroidvania.',
+    factory: createCastleVein,
   },
 ];
 

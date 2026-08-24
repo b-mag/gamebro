@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { GameBoyEngine } from '@/engine';
+import { GameBoyEngine, decodeAnySave, type CastleVeinSaveData } from '@/engine';
 import { BootSequence } from './BootSequence';
 import { MainMenu } from './MainMenu';
 
@@ -36,19 +36,24 @@ export function GameBoyScreen({ gameSlug, saveCode }: GameBoyScreenProps) {
       void (async () => {
         await eng.initAudio();
         const { getGameBySlug } = await import('@/games/registry');
-        const { decodeSave } = await import('@/engine');
         const reg = getGameBySlug(gameSlug);
         if (reg) {
           const game = reg.factory();
           await eng.startGame(game);
           if (saveCode) {
-            const save = decodeSave(saveCode);
-            if (save && 'loadFromSave' in game) {
-              (game as { loadFromSave: (l: number, s: number, sd: number) => void }).loadFromSave(
-                save.level,
-                save.score,
-                save.seed,
-              );
+            const decoded = decodeAnySave(saveCode);
+            if (decoded && 'loadFromSave' in game) {
+              if (decoded.castleVein && gameSlug === 'castle-vein') {
+                const cv: CastleVeinSaveData = decoded.castleVein;
+                (game as { loadFromSave: (d: CastleVeinSaveData) => void }).loadFromSave(cv);
+              } else if (decoded.eyeOfTheDeep && gameSlug === 'eye-of-the-deep') {
+                const s = decoded.eyeOfTheDeep;
+                (game as { loadFromSave: (l: number, sc: number, sd: number) => void }).loadFromSave(
+                  s.level,
+                  s.score,
+                  s.seed,
+                );
+              }
             }
           }
           eng.start();

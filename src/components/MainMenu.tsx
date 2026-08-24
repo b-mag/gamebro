@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import type { GameBoyEngine } from '@/engine';
-import { PaletteShade, decodeSave } from '@/engine';
+import { PaletteShade, decodeAnySave } from '@/engine';
 import { getAllGames } from '@/games/registry';
 
 interface MainMenuProps {
@@ -103,16 +103,16 @@ export function MainMenu({ engine, onSelectGame }: MainMenuProps) {
         if (e.key === 'Backspace') {
           setCodeInput((c) => c.slice(0, -1));
           engine.audio.play('beep');
-        } else if (/^[0-9A-Fa-f]$/.test(e.key) && codeInput.length < 15) {
+        } else if (/^[0-9A-Fa-f]$/.test(e.key) && codeInput.length < 17) {
           setCodeInput((c) => c + e.key.toUpperCase());
           engine.audio.play('beepHigh');
         }
         if (e.key === 'z' || e.key === ' ') {
           e.preventDefault();
-          const save = decodeSave(codeInput);
+          const save = decodeAnySave(codeInput);
           if (save) {
             engine.audio.play('select');
-            onSelectGame(games[0].slug, codeInput);
+            onSelectGame(save.slug, codeInput);
           } else {
             setError('INVALID CODE');
             engine.audio.play('beep');

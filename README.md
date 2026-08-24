@@ -25,8 +25,20 @@ Open [http://localhost:3000](http://localhost:3000) — boot sequence → menu �
 
 ## Features
 
-- Reusable `/src/engine` — loop, input, audio, 160×144 renderer, wireframe 3D, HEX saves
+- Reusable `/src/engine` — loop, input, audio, 160×144 renderer, wireframe 3D, tilemaps, multi-game HEX saves
 - Classic 4-shade green palette + DMG boot jingle
-- **Eye of the Deep** — 5 procedural levels, MCU stealth, threat indicator, continue codes
+- **Eye of the Deep** — procedural wireframe stealth, 5 levels
+- **Castle Vein** — Belard's metroidvania platformer with intro chase, backdash, relics, bosses, save rooms
+
+## Castle Vein Controls
+
+| Action | Keys |
+|--------|------|
+| Move | Arrow keys / WASD |
+| Jump | A (Z / Space) |
+| Attack | B (X / Shift) |
+| Backdash | Hold opposite direction + Jump |
+| Equip menu | Start (Enter) |
+| Save (in save room) | A at the candle |
 
 See [ARCHITECTURE.md](./ARCHITECTURE.md) for how to add new games.

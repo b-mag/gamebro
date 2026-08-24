@@ -1,14 +1,18 @@
 /**
- * HEX continue codes — encodes level, score, and procedural seed.
+ * Multi-game HEX save system.
  *
- * Format (16 hex chars = 64 bits):
- *   [0-3]   level (0–15, stored as level-1)
- *   [4-11]  score (32-bit, capped)
- *   [12-15] seed fragment (16-bit; full seed reconstructed with level salt)
- *   [16-17] checksum (XOR nibbles of above)
- *
- * Example: `3A4F8912B7C6D5E4F2`
+ * Legacy (Eye of the Deep): 15 chars, no game prefix
+ * Extended: starts with game ID nibble
+ *   0 = eye-of-the-deep (legacy format)
+ *   1 = castle-vein
  */
+
+export const GAME_SAVE_IDS = {
+  'eye-of-the-deep': 0,
+  'castle-vein': 1,
+} as const;
+
+export type GameSaveId = (typeof GAME_SAVE_IDS)[keyof typeof GAME_SAVE_IDS];
 
 export interface SaveData {
   level: number;
@@ -16,8 +20,25 @@ export interface SaveData {
   seed: number;
 }
 
-const MAX_LEVEL = 15;
-const MAX_SCORE = 0xffffffff;
+export interface CastleVeinSaveData {
+  room: string;
+  x: number;
+  y: number;
+  hp: number;
+  maxHp: number;
+  weapon: number;
+  armor: number;
+  relics: number;
+  gold: number;
+  bosses: number;
+}
+
+export interface DecodedSave {
+  gameId: GameSaveId;
+  slug: string;
+  eyeOfTheDeep?: SaveData;
+  castleVein?: CastleVeinSaveData;
+}
 
 function nibbleChecksum(hex: string): string {
   let xor = 0;
@@ -27,43 +48,121 @@ function nibbleChecksum(hex: string): string {
   return xor.toString(16).toUpperCase().padStart(2, '0').slice(-2);
 }
 
+/** Eye of the Deep save (legacy format). */
 export function encodeSave(data: SaveData): string {
-  const level = Math.max(1, Math.min(MAX_LEVEL, data.level));
-  const score = Math.max(0, Math.min(MAX_SCORE, Math.floor(data.score)));
+  const level = Math.max(1, Math.min(15, data.level));
+  const score = Math.max(0, Math.min(0xffffffff, Math.floor(data.score)));
   const seed = data.seed >>> 0;
-
-  const levelHex = (level - 1).toString(16).toUpperCase().padStart(1, '0');
+  const levelHex = (level - 1).toString(16).toUpperCase();
   const scoreHex = score.toString(16).toUpperCase().padStart(8, '0');
   const seedHex = (seed & 0xffff).toString(16).toUpperCase().padStart(4, '0');
-
   const payload = `${levelHex}${scoreHex}${seedHex}`;
-  const checksum = nibbleChecksum(payload);
-  return `${payload}${checksum}`;
+  return `${payload}${nibbleChecksum(payload)}`;
 }
 
 export function decodeSave(code: string): SaveData | null {
+  const result = decodeAnySave(code);
+  return result?.eyeOfTheDeep ?? null;
+}
+
+/** Castle Vein save — 17 hex chars with game ID prefix. */
+const ROOM_IDS: Record<string, number> = {
+  entrance: 1,
+  hall: 2,
+  stairwell: 3,
+  alchemy: 4,
+  dungeon: 5,
+  save: 6,
+  tower: 7,
+  boss1: 8,
+  throne: 9,
+};
+const ID_TO_ROOM: Record<number, string> = Object.fromEntries(
+  Object.entries(ROOM_IDS).map(([k, v]) => [v, k]),
+);
+
+export function encodeCastleVeinSave(data: CastleVeinSaveData): string {
+  const gameId = 1;
+  const roomId = ROOM_IDS[data.room] ?? 1;
+  const x = Math.max(0, Math.min(255, Math.floor(data.x)));
+  const y = Math.max(0, Math.min(255, Math.floor(data.y)));
+  const hp = Math.max(0, Math.min(15, Math.floor(data.hp / 10)));
+  const weapon = data.weapon & 0x3;
+  const armor = data.armor & 0x3;
+  const relics = data.relics & 0x3;
+  const bosses = data.bosses & 0x3;
+  const flags = (weapon << 6) | (armor << 4) | (relics << 2) | bosses;
+  const gold = Math.max(0, Math.min(0xffff, data.gold));
+
+  const payload =
+    gameId.toString(16).toUpperCase() +
+    roomId.toString(16).toUpperCase().padStart(2, '0') +
+    x.toString(16).toUpperCase().padStart(2, '0') +
+    y.toString(16).toUpperCase().padStart(2, '0') +
+    hp.toString(16).toUpperCase() +
+    flags.toString(16).toUpperCase().padStart(2, '0') +
+    gold.toString(16).toUpperCase().padStart(4, '0');
+
+  return `${payload}${nibbleChecksum(payload)}`;
+}
+
+function decodeCastleVein(payload: string): CastleVeinSaveData | null {
+  if (payload.length < 15) return null;
+  const roomId = parseInt(payload.slice(1, 3), 16);
+  const x = parseInt(payload.slice(3, 5), 16);
+  const y = parseInt(payload.slice(5, 7), 16);
+  const hpN = parseInt(payload.slice(7, 8), 16);
+  const flags = parseInt(payload.slice(8, 10), 16);
+  const gold = parseInt(payload.slice(10, 14), 16);
+  if ([roomId, x, y, hpN, flags, gold].some(Number.isNaN)) return null;
+
+  return {
+    room: ID_TO_ROOM[roomId] ?? 'entrance',
+    x,
+    y,
+    hp: hpN * 10,
+    maxHp: 100,
+    weapon: (flags >> 6) & 0x3,
+    armor: (flags >> 4) & 0x3,
+    relics: (flags >> 2) & 0x3,
+    bosses: flags & 0x3,
+    gold,
+  };
+}
+
+/** Decode any GameBro save code and identify target game. */
+export function decodeAnySave(code: string): DecodedSave | null {
   const cleaned = code.replace(/[^0-9A-Fa-f]/g, '').toUpperCase();
   if (cleaned.length < 13) return null;
 
+  const firstNibble = parseInt(cleaned[0], 16);
+
+  // Castle Vein extended format
+  if (firstNibble === 1 && cleaned.length >= 15) {
+    const payload = cleaned.slice(0, 15);
+    const checksum = cleaned.slice(15, 17) || nibbleChecksum(payload);
+    if (checksum !== nibbleChecksum(payload)) return null;
+    const cv = decodeCastleVein(payload);
+    if (!cv) return null;
+    return { gameId: 1, slug: 'castle-vein', castleVein: cv };
+  }
+
+  // Legacy Eye of the Deep
   const payload = cleaned.slice(0, 13);
   const checksum = cleaned.slice(13, 15) || nibbleChecksum(payload);
-
-  if (checksum !== nibbleChecksum(payload)) {
-    return null;
-  }
+  if (checksum !== nibbleChecksum(payload)) return null;
 
   const level = parseInt(payload.slice(0, 1), 16) + 1;
   const score = parseInt(payload.slice(1, 9), 16);
   const seedLo = parseInt(payload.slice(9, 13), 16);
+  if ([level, score, seedLo].some(Number.isNaN)) return null;
 
-  if (Number.isNaN(level) || Number.isNaN(score) || Number.isNaN(seedLo)) {
-    return null;
-  }
-
-  // Reconstruct full 32-bit seed from level salt + low 16 bits
   const seed = ((level * 0x9e3779b9) ^ seedLo) >>> 0;
-
-  return { level, score, seed };
+  return {
+    gameId: 0,
+    slug: 'eye-of-the-deep',
+    eyeOfTheDeep: { level, score, seed },
+  };
 }
 
 export function formatSaveCode(code: string): string {
