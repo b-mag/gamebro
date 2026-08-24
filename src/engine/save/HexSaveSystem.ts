@@ -68,18 +68,31 @@ export function decodeSave(code: string): SaveData | null {
 /** Castle Vein save — 17 hex chars with game ID prefix. */
 const ROOM_IDS: Record<string, number> = {
   entrance: 1,
-  hall: 2,
-  stairwell: 3,
-  alchemy: 4,
+  gallery: 2,
+  catacombs: 3,
+  upper_nave: 4,
   dungeon: 5,
   save: 6,
   tower: 7,
+  shoe_boss: 8,
+  vault: 9,
+  hall: 2,
+  stairwell: 3,
+  alchemy: 4,
   boss1: 8,
-  throne: 9,
+  throne: 7,
 };
-const ID_TO_ROOM: Record<number, string> = Object.fromEntries(
-  Object.entries(ROOM_IDS).map(([k, v]) => [v, k]),
-);
+const ID_TO_ROOM: Record<number, string> = {
+  1: 'entrance',
+  2: 'gallery',
+  3: 'catacombs',
+  4: 'upper_nave',
+  5: 'dungeon',
+  6: 'save',
+  7: 'tower',
+  8: 'shoe_boss',
+  9: 'vault',
+};
 
 export function encodeCastleVeinSave(data: CastleVeinSaveData): string {
   const gameId = 1;

@@ -112,18 +112,19 @@ export const CASTLE_TILES: TileDef[] = [
   },
 ];
 
-/** Draw Belard sprite (16×16). */
+/** Draw Belard — gothic Belmont/Alucard hybrid, late-GB style (~16×18). */
 export function drawBelard(
   ctx: CanvasRenderingContext2D,
   x: number,
   y: number,
   facing: number,
   anim: number,
-  attacking: boolean,
+  backdashing: boolean,
 ): void {
   ctx.save();
-  if (facing < 0) {
-    ctx.translate(x + 16, y);
+  const flip = facing < 0;
+  if (flip) {
+    ctx.translate(x + 18, y);
     ctx.scale(-1, 1);
     x = 0;
     y = 0;
@@ -133,33 +134,147 @@ export function drawBelard(
     y = 0;
   }
 
-  const bob = Math.floor(anim * 4) % 2;
-  const leg = bob;
+  const step = Math.floor(anim * 5) % 2;
+  const legF = step;
+  const legB = 1 - step;
+  const capeFlare = backdashing ? 2 : Math.sin(anim * 6) * 0.5;
 
-  // Cape
+  // Cape — draped over shoulders, attached to coat (not a floating backpack)
   ctx.fillStyle = PALETTE_HEX[S.Darkest];
-  ctx.fillRect(x + 2, y + 4, 5, 8);
-  // Body
+  ctx.fillRect(x + 5, y + 5, 8, 3);
+  ctx.fillRect(x + 4, y + 7, 9, 8 + capeFlare);
+  ctx.fillRect(x + 3, y + 14 + capeFlare, 3, 4);
+  ctx.fillRect(x + 11, y + 15 + capeFlare, 2, 3);
+
+  // Flowing hair (Alucard)
   ctx.fillStyle = PALETTE_HEX[S.Dark];
-  ctx.fillRect(x + 4, y + 5 + leg, 8, 7);
-  // Head
+  ctx.fillRect(x + 8, y + 1, 5, 3);
   ctx.fillStyle = PALETTE_HEX[S.Light];
-  ctx.fillRect(x + 5, y + 1, 6, 5);
-  // Hair
+  ctx.fillRect(x + 10, y + 2, 2, 2);
   ctx.fillStyle = PALETTE_HEX[S.Darkest];
-  ctx.fillRect(x + 5, y, 6, 2);
-  // Legs
-  ctx.fillStyle = PALETTE_HEX[S.Darkest];
-  ctx.fillRect(x + 5, y + 12 + leg, 3, 4 - leg);
-  ctx.fillRect(x + 9, y + 12 + (1 - leg), 3, 4 - (1 - leg));
+  ctx.fillRect(x + 11, y + 4, 4, 8);
+  ctx.fillRect(x + 12, y + 10, 3, 4);
 
-  if (attacking) {
-    ctx.fillStyle = PALETTE_HEX[S.Lightest];
-    ctx.fillRect(x + 12, y + 6, 6, 2);
-    ctx.fillRect(x + 16, y + 4, 2, 6);
-  }
+  // High collar + head
+  ctx.fillStyle = PALETTE_HEX[S.Darkest];
+  ctx.fillRect(x + 7, y + 3, 6, 2);
+  ctx.fillStyle = PALETTE_HEX[S.Light];
+  ctx.fillRect(x + 8, y + 1, 4, 4);
+  ctx.fillStyle = PALETTE_HEX[S.Darkest];
+  ctx.fillRect(x + 9, y + 2, 1, 1);
+
+  // Long coat / tunic (overlaps cape at shoulders)
+  ctx.fillStyle = PALETTE_HEX[S.Dark];
+  ctx.fillRect(x + 6, y + 5, 9, 9);
+  ctx.fillStyle = PALETTE_HEX[S.Darkest];
+  ctx.fillRect(x + 6, y + 13, 9, 1);
+  ctx.fillRect(x + 8, y + 6, 5, 1);
+  ctx.fillRect(x + 7, y + 5, 7, 1);
+
+  // Belt buckle
+  ctx.fillStyle = PALETTE_HEX[S.Light];
+  ctx.fillRect(x + 9, y + 10, 3, 2);
+
+  // Boots
+  ctx.fillStyle = PALETTE_HEX[S.Darkest];
+  ctx.fillRect(x + 6, y + 14 + legF, 4, 4 - legF);
+  ctx.fillRect(x + 11, y + 14 + legB, 4, 4 - legB);
+  ctx.fillStyle = PALETTE_HEX[S.Dark];
+  ctx.fillRect(x + 6, y + 16, 4, 1);
+  ctx.fillRect(x + 11, y + 16, 4, 1);
+
+  // Whip handle at hip
+  ctx.fillStyle = PALETTE_HEX[S.Light];
+  ctx.fillRect(x + 13, y + 9, 2, 4);
+  ctx.fillStyle = PALETTE_HEX[S.Darkest];
+  ctx.fillRect(x + 14, y + 11, 3, 1);
 
   ctx.restore();
+}
+
+/** Sub-weapon projectiles. */
+export function drawProjectile(
+  ctx: CanvasRenderingContext2D,
+  kind: string,
+  x: number,
+  y: number,
+): void {
+  if (kind === 'knife') {
+    ctx.fillStyle = PALETTE_HEX[S.Lightest];
+    ctx.fillRect(x, y + 1, 6, 2);
+    ctx.fillStyle = PALETTE_HEX[S.Dark];
+    ctx.fillRect(x + 5, y, 2, 4);
+  } else if (kind === 'axe') {
+    ctx.fillStyle = PALETTE_HEX[S.Darkest];
+    ctx.fillRect(x + 2, y, 2, 6);
+    ctx.fillStyle = PALETTE_HEX[S.Light];
+    ctx.fillRect(x, y, 6, 3);
+  }
+}
+
+/** Hourglass freeze flash overlay on enemy. */
+export function drawFrozenEffect(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+): void {
+  ctx.fillStyle = PALETTE_HEX[S.Lightest];
+  ctx.globalAlpha = 0.35;
+  ctx.fillRect(x, y, w, h);
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = PALETTE_HEX[S.Light];
+  ctx.fillRect(x + 2, y + 2, w - 4, h - 4);
+}
+
+/** Draw weapon attack animation (visible whip/sword/axe — not hitbox debug rect). */
+export function drawWeaponAttack(
+  ctx: CanvasRenderingContext2D,
+  weapon: number,
+  x: number,
+  y: number,
+  facing: number,
+  progress: number,
+): void {
+  const extend = Math.min(1, progress / 0.12);
+  const S = PaletteShade;
+
+  if (weapon === 0) {
+    // Whip — curved chain of segments
+    const baseX = facing > 0 ? x + 10 : x + 6;
+    const baseY = y + 8;
+    const reach = 16 * extend;
+    ctx.fillStyle = PALETTE_HEX[S.Darkest];
+    const segments = 6;
+    for (let i = 0; i < segments; i++) {
+      const t = (i / segments) * extend;
+      const segX = baseX + facing * (t * reach);
+      const segY = baseY + Math.sin(t * Math.PI * 1.5) * 4 * facing;
+      ctx.fillRect(Math.floor(segX), Math.floor(segY), 2, 2);
+    }
+    // Whip tip
+    const tipX = baseX + facing * reach;
+    const tipY = baseY - 2;
+    ctx.fillStyle = PALETTE_HEX[S.Lightest];
+    ctx.fillRect(Math.floor(tipX), Math.floor(tipY), 3, 3);
+  } else if (weapon === 1) {
+    // Sword slash arc
+    const cx = facing > 0 ? x + 14 : x + 2;
+    const cy = y + 6;
+    ctx.fillStyle = PALETTE_HEX[S.Lightest];
+    ctx.fillRect(cx, cy, facing * 14 * extend, 2);
+    ctx.fillStyle = PALETTE_HEX[S.Light];
+    ctx.fillRect(cx + facing * 4, cy - 2, facing * 8 * extend, 2);
+  } else {
+    // Axe swing
+    const cx = facing > 0 ? x + 12 : x;
+    const cy = y + 4;
+    ctx.fillStyle = PALETTE_HEX[S.Dark];
+    ctx.fillRect(cx, cy, 3, 10);
+    ctx.fillStyle = PALETTE_HEX[S.Darkest];
+    ctx.fillRect(cx + facing * 3, cy - 2, facing * 10 * extend, 6);
+  }
 }
 
 export function drawEnemy(
@@ -218,6 +333,28 @@ export function drawEnemy(
       ctx.fillRect(x + (f > 0 ? 14 : -4), y + 6, 5, 3);
       break;
     }
+    case 'boss_shoe': {
+      const stomp = Math.floor(phase * 3) % 2;
+      // Giant boot body
+      ctx.fillStyle = PALETTE_HEX[S.Darkest];
+      ctx.fillRect(x + 2, y + 4 + stomp, 20, 12);
+      ctx.fillStyle = PALETTE_HEX[S.Dark];
+      ctx.fillRect(x + 4, y + 6 + stomp, 16, 8);
+      ctx.fillStyle = PALETTE_HEX[S.Light];
+      ctx.fillRect(x + 8, y + 2, 8, 4);
+      ctx.fillRect(x + 10, y + 3, 4, 2);
+      // Sole
+      ctx.fillStyle = PALETTE_HEX[S.Darkest];
+      ctx.fillRect(x, y + 14 + stomp, 24, 4);
+      // Arms
+      ctx.fillStyle = PALETTE_HEX[S.Light];
+      ctx.fillRect(x - 2, y + 6, 4, 8);
+      ctx.fillRect(x + 22, y + 6, 4, 8);
+      ctx.fillStyle = PALETTE_HEX[S.Darkest];
+      ctx.fillRect(x - 3, y + 12, 5, 3);
+      ctx.fillRect(x + 22, y + 12, 5, 3);
+      break;
+    }
   }
 }
 
@@ -239,6 +376,15 @@ export function drawPickup(
     ctx.fillRect(x + 1, y + 2, 3, 3);
     ctx.fillRect(x + 4, y + 2, 3, 3);
     ctx.fillRect(x + 2, y + 5, 4, 2);
+  } else if (kind === 'energy') {
+    ctx.fillStyle = PALETTE_HEX[S.Light];
+    ctx.fillRect(x + 2, y + 2, 4, 4);
+    ctx.fillStyle = PALETTE_HEX[S.Darkest];
+    ctx.fillRect(x + 3, y + 3, 2, 2);
+  } else if (kind === 'subweapon') {
+    ctx.fillRect(x + 1, y + 1, 6, 6);
+    ctx.fillStyle = PALETTE_HEX[S.Darkest];
+    ctx.fillRect(x + 3, y + 3, 2, 2);
   } else {
     ctx.fillRect(x + 1, y + 3, 6, 4);
   }

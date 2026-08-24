@@ -13,7 +13,7 @@ export enum Tile {
   Background = 10,
 }
 
-export const SOLID_TILES = new Set([Tile.Solid, Tile.Cracked, Tile.Door, Tile.Drawbridge]);
+export const SOLID_TILES = new Set([Tile.Solid, Tile.Cracked, Tile.Drawbridge]);
 export const PLATFORM_TILES = new Set([Tile.Platform]);
 export const HAZARD_TILES = new Set([Tile.Spike]);
 
@@ -50,11 +50,15 @@ export interface RoomDef {
 }
 
 export interface RoomDoor {
+  id?: string;
   col: number;
   row: number;
   targetRoom: string;
   spawnX: number;
   spawnY: number;
+  /** door=walk-through, up=ceiling, down=floor pit, secret=breakable floor */
+  type?: 'door' | 'up' | 'down' | 'secret';
+  width?: number;
 }
 
 export interface EnemySpawn {
@@ -64,14 +68,21 @@ export interface EnemySpawn {
 }
 
 export interface PickupSpawn {
-  kind: 'weapon' | 'armor' | 'relic' | 'gold' | 'heart';
+  kind: 'weapon' | 'armor' | 'relic' | 'gold' | 'heart' | 'energy' | 'subweapon';
   id: number;
   x: number;
   y: number;
   collected?: boolean;
 }
 
-export type EnemyType = 'bat' | 'skeleton' | 'knight' | 'wraith' | 'boss_guard' | 'boss_wraith';
+export type EnemyType =
+  | 'bat'
+  | 'skeleton'
+  | 'knight'
+  | 'wraith'
+  | 'boss_guard'
+  | 'boss_wraith'
+  | 'boss_shoe';
 
 export interface PlayerState {
   x: number;
@@ -98,6 +109,10 @@ export interface PlayerState {
   backdash: number;
   backdashCooldown: number;
   anim: number;
+  /** Mind/Energy gauge for sub-weapons (SOTN-style). */
+  energy: number;
+  maxEnergy: number;
+  subWeapon: number;
 }
 
 export interface EnemyState {
@@ -115,12 +130,15 @@ export interface EnemyState {
   phase: number;
   alive: boolean;
   invuln: number;
+  frozen: number;
 }
 
 export type GameMode =
+  | 'scroll'
   | 'intro'
   | 'playing'
   | 'menu'
+  | 'map'
   | 'save'
   | 'paused'
   | 'dead'
@@ -132,3 +150,8 @@ export const JUMP_FORCE = -145;
 export const MOVE_SPEED = 52;
 export const BACKDASH_SPEED = 120;
 export const BACKDASH_DURATION = 0.18;
+export const BACKDASH_COOLDOWN = 0.08;
+
+/** Opening story scroll (shown before intro chase). */
+export const OPENING_SCROLL =
+  "As expected Dracula's castle just randomly appeared. Overnight Flock cameras appeared all around the village. The villagers were over all this crap and sent local hero BELARD to put a stop to all this non-sense.";

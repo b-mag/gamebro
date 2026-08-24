@@ -24,6 +24,8 @@ export class AudioEngine {
   private sirenLfo: OscillatorNode | null = null;
   private sirenActive = false;
   private muted = false;
+  private volume = 1;
+  private readonly baseGain = 0.35;
 
   /** Must be called from a user gesture before playing sounds. */
   async init(): Promise<void> {
@@ -31,7 +33,7 @@ export class AudioEngine {
     const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
     this.ctx = new AudioCtx();
     this.masterGain = this.ctx.createGain();
-    this.masterGain.gain.value = 0.35;
+    this.masterGain.gain.value = this.baseGain;
     this.masterGain.connect(this.ctx.destination);
   }
 
@@ -52,8 +54,22 @@ export class AudioEngine {
 
   setMuted(muted: boolean): void {
     this.muted = muted;
+    this.applyVolume();
+  }
+
+  /** Volume slider 0–1 (default 1 = current starting level). */
+  setVolume(level: number): void {
+    this.volume = Math.max(0, Math.min(1, level));
+    this.applyVolume();
+  }
+
+  getVolume(): number {
+    return this.volume;
+  }
+
+  private applyVolume(): void {
     if (this.masterGain) {
-      this.masterGain.gain.value = muted ? 0 : 0.35;
+      this.masterGain.gain.value = this.muted ? 0 : this.baseGain * this.volume;
     }
   }
 

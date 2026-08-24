@@ -35,6 +35,8 @@ export interface InputState {
   pressed: Set<GBButton>;
   /** Buttons released this frame. */
   released: Set<GBButton>;
+  /** Shift held — secondary actions (backdash, sub-weapons). */
+  altHeld: boolean;
 }
 
 export interface EngineConfig {

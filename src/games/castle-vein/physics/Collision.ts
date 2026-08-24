@@ -93,6 +93,9 @@ export function createPlayerState(x: number, y: number): PlayerState {
     backdash: 0,
     backdashCooldown: 0,
     anim: 0,
+    energy: 40,
+    maxEnergy: 100,
+    subWeapon: 0,
   };
 }
 

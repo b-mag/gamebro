@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { GameBoyEngine, decodeAnySave, type CastleVeinSaveData } from '@/engine';
 import { BootSequence } from './BootSequence';
 import { MainMenu } from './MainMenu';
+import { GameBoyShellControls } from './GameBoyShellControls';
 
 type AppPhase = 'boot' | 'menu';
 
@@ -81,9 +82,19 @@ export function GameBoyScreen({ gameSlug, saveCode }: GameBoyScreenProps) {
     [router, engine],
   );
 
+  const handlePowerReset = useCallback(() => {
+    engine?.stop();
+    if (gameSlug) {
+      router.push('/');
+    } else {
+      window.location.reload();
+    }
+  }, [engine, gameSlug, router]);
+
   return (
     <div className="gamebro-page">
       <div className="gamebro-shell">
+        <GameBoyShellControls engine={engine} onPowerReset={handlePowerReset} />
         <div className="gamebro-label">GameBro</div>
         <div className="gamebro-screen-wrap scanlines">
           <canvas ref={canvasRef} className="gamebro-canvas" width={640} height={576} />
@@ -96,7 +107,7 @@ export function GameBoyScreen({ gameSlug, saveCode }: GameBoyScreenProps) {
         </div>
         <p className="gamebro-controls-hint">
           <kbd>↑↓←→</kbd> / <kbd>WASD</kbd> move · <kbd>Z</kbd>/<kbd>Space</kbd> A ·{' '}
-          <kbd>X</kbd>/<kbd>Shift</kbd> B · <kbd>Enter</kbd> Start
+          <kbd>Shift</kbd> hold · Shift+<kbd>Z</kbd> backdash · Shift+<kbd>X</kbd> sub-weapon
         </p>
       </div>
     </div>

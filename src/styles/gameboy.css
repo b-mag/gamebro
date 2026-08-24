@@ -51,12 +51,96 @@ body {
 
 .gamebro-shell {
   position: relative;
-  padding: 24px 28px 48px;
+  padding: 24px 56px 48px 28px;
   background: linear-gradient(180deg, var(--gb-shell) 0%, var(--gb-shell-dark) 100%);
   border-radius: 12px 12px 40px 12px;
   box-shadow:
     inset 0 2px 0 rgba(255, 255, 255, 0.25),
     0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+/* Volume wheel + power button (DMG-style, mouse clickable) */
+.gamebro-shell-controls {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  z-index: 2;
+}
+
+.gamebro-volume {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.gamebro-volume-label {
+  font-size: 7px;
+  font-weight: bold;
+  letter-spacing: 0.1em;
+  color: var(--gb-bezel);
+}
+
+.gamebro-volume-track {
+  position: relative;
+  width: 14px;
+  height: 64px;
+  background: var(--gb-bezel);
+  border-radius: 3px;
+  cursor: pointer;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
+  touch-action: none;
+}
+
+.gamebro-volume-notch {
+  position: absolute;
+  left: 1px;
+  right: 1px;
+  height: 8px;
+  background: var(--gb-light);
+  border-radius: 2px;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.3);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.gamebro-power-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid var(--gb-bezel);
+  background: linear-gradient(145deg, #a03030 0%, #601818 100%);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 2px 4px rgba(0, 0, 0, 0.4);
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+
+.gamebro-power-btn:hover {
+  filter: brightness(1.1);
+}
+
+.gamebro-power-btn.pressed {
+  transform: scale(0.92);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.gamebro-power-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ff4444;
+  box-shadow: 0 0 4px #ff0000;
 }
 
 .gamebro-label {

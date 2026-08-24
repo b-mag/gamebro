@@ -10,9 +10,10 @@ import type { GBButton, InputState } from '../core/types';
  * | D-Pad Left| ArrowLeft, A      |
  * | D-Pad Right| ArrowRight, D    |
  * | A         | Z, Space, J       |
- * | B         | X, C, K, Shift  |
+ * | B         | X, C, K           |
  * | Start     | Enter, Return     |
  * | Select    | Tab, Backspace    |
+ * | Alt (hold)| Shift (L/R)       |
  */
 const KEY_MAP: Record<string, GBButton> = {
   ArrowUp: 'up',
@@ -38,7 +39,6 @@ const KEY_MAP: Record<string, GBButton> = {
   C: 'b',
   k: 'b',
   K: 'b',
-  Shift: 'b',
   Enter: 'start',
   Tab: 'select',
   Backspace: 'select',
@@ -48,6 +48,7 @@ export class InputManager {
   private held = new Set<GBButton>();
   private pressed = new Set<GBButton>();
   private released = new Set<GBButton>();
+  private altHeld = false;
   private bound = false;
   private onKeyDown = (e: KeyboardEvent) => this.handleKey(e, true);
   private onKeyUp = (e: KeyboardEvent) => this.handleKey(e, false);
@@ -67,6 +68,7 @@ export class InputManager {
     this.held.clear();
     this.pressed.clear();
     this.released.clear();
+    this.altHeld = false;
   }
 
   /** Consume input state for this frame; clears edge triggers afterward. */
@@ -75,6 +77,7 @@ export class InputManager {
       held: new Set(this.held),
       pressed: new Set(this.pressed),
       released: new Set(this.released),
+      altHeld: this.altHeld,
     };
     this.pressed.clear();
     this.released.clear();
@@ -87,10 +90,16 @@ export class InputManager {
       held: new Set(this.held),
       pressed: new Set(this.pressed),
       released: new Set(this.released),
+      altHeld: this.altHeld,
     };
   }
 
   private handleKey(e: KeyboardEvent, down: boolean): void {
+    if (e.key === 'Shift') {
+      this.altHeld = down;
+      return;
+    }
+
     const button = KEY_MAP[e.key];
     if (!button) return;
 
