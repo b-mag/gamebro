@@ -1,5 +1,8 @@
 # GameBro
 
+<img width="800" height="783" alt="eye_deep_1" src="https://github.com/user-attachments/assets/278f02a2-6f62-4ed0-afdb-9a812bc0bdc8" />
+
+
 Authentic Game Boy–style game engine + **Eye of the Deep** (Sentinel-inspired wireframe underwater stealth).
 
 ## Quick Start
