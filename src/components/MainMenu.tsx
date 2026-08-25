@@ -26,33 +26,43 @@ export function MainMenu({ engine, onSelectGame }: MainMenuProps) {
     const r = engine.screen.renderer;
     r.clear(PaletteShade.Lightest);
 
-    r.drawText('GAMEBRO', 80, 8, {
+    r.drawText('GAMEBRO', 80, 4, {
       shade: PaletteShade.Darkest,
       align: 'center',
-      size: 10,
+      size: 9,
     });
-    r.drawText('SELECT GAME', 80, 22, {
+    r.drawText('SELECT GAME', 80, 16, {
       shade: PaletteShade.Dark,
       align: 'center',
-      size: 7,
+      size: 6,
     });
 
     if (mode === 'list') {
-      games.forEach((game, i) => {
-        const prefix = i === selected ? '►' : ' ';
-        const shade = i === selected ? PaletteShade.Darkest : PaletteShade.Dark;
-        r.drawText(`${prefix}${game.name}`, 20, 40 + i * 14, { shade, size: 8 });
+      const rowH = 11;
+      const listTop = 26;
+      const visible = 7;
+      const scroll =
+        games.length <= visible
+          ? 0
+          : Math.max(0, Math.min(selected - (visible - 1), games.length - visible));
+      const shown = games.slice(scroll, scroll + visible);
+      shown.forEach((game, i) => {
+        const idx = scroll + i;
+        const prefix = idx === selected ? '>' : ' ';
+        const shade = idx === selected ? PaletteShade.Darkest : PaletteShade.Dark;
+        const label = game.name.length > 18 ? `${game.name.slice(0, 17)}.` : game.name;
+        r.drawText(`${prefix}${label}`, 8, listTop + i * rowH, { shade, size: 7 });
       });
 
-      r.drawText('↑↓ MOVE  A PLAY', 80, 120, {
+      r.drawText('UP/DN MOVE  A PLAY', 80, 118, {
         shade: PaletteShade.Light,
         align: 'center',
-        size: 6,
+        size: 5,
       });
       r.drawText('B CONTINUE CODE', 80, 128, {
         shade: PaletteShade.Light,
         align: 'center',
-        size: 6,
+        size: 5,
       });
     } else {
       r.drawText('ENTER CODE', 80, 40, { shade: PaletteShade.Darkest, align: 'center', size: 8 });

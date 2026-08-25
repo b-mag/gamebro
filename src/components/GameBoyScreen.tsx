@@ -54,6 +54,20 @@ export function GameBoyScreen({ gameSlug, saveCode }: GameBoyScreenProps) {
                   s.score,
                   s.seed,
                 );
+              } else if (decoded.sentry && gameSlug === 'sentry') {
+                const s = decoded.sentry;
+                (game as { loadFromSave: (l: number, sc: number, sd: number) => void }).loadFromSave(
+                  s.level,
+                  s.score,
+                  s.seed,
+                );
+              } else if (decoded.theTriangle && gameSlug === 'the-triangle') {
+                const s = decoded.theTriangle;
+                (game as { loadFromSave: (l: number, sc: number, sd: number) => void }).loadFromSave(
+                  s.level,
+                  s.score,
+                  s.seed,
+                );
               }
             }
           }

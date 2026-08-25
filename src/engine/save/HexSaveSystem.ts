@@ -5,11 +5,15 @@
  * Extended: starts with game ID nibble
  *   0 = eye-of-the-deep (legacy format)
  *   1 = castle-vein
+ *   2 = sentry
+ *   3 = the-triangle
  */
 
 export const GAME_SAVE_IDS = {
   'eye-of-the-deep': 0,
   'castle-vein': 1,
+  sentry: 2,
+  'the-triangle': 3,
 } as const;
 
 export type GameSaveId = (typeof GAME_SAVE_IDS)[keyof typeof GAME_SAVE_IDS];
@@ -38,6 +42,8 @@ export interface DecodedSave {
   slug: string;
   eyeOfTheDeep?: SaveData;
   castleVein?: CastleVeinSaveData;
+  sentry?: SaveData;
+  theTriangle?: SaveData;
 }
 
 function nibbleChecksum(hex: string): string {
@@ -143,6 +149,32 @@ function decodeCastleVein(payload: string): CastleVeinSaveData | null {
   };
 }
 
+/**
+ * Prefixed level/score/seed save for SENTRY / The Triangle.
+ * Format: gameId(1) + level(1) + score(8) + seed(4) + checksum(2) = 16 chars.
+ */
+export function encodePrefixedLevelSave(gameId: 2 | 3, data: SaveData): string {
+  const level = Math.max(1, Math.min(15, data.level));
+  const score = Math.max(0, Math.min(0xffffffff, Math.floor(data.score)));
+  const seed = data.seed >>> 0;
+  const payload =
+    gameId.toString(16).toUpperCase() +
+    (level - 1).toString(16).toUpperCase() +
+    score.toString(16).toUpperCase().padStart(8, '0') +
+    (seed & 0xffff).toString(16).toUpperCase().padStart(4, '0');
+  return `${payload}${nibbleChecksum(payload)}`;
+}
+
+function decodePrefixedLevelSave(payload: string): SaveData | null {
+  if (payload.length < 14) return null;
+  const level = parseInt(payload.slice(1, 2), 16) + 1;
+  const score = parseInt(payload.slice(2, 10), 16);
+  const seedLo = parseInt(payload.slice(10, 14), 16);
+  if ([level, score, seedLo].some(Number.isNaN)) return null;
+  const seed = ((level * 0x9e3779b9) ^ seedLo) >>> 0;
+  return { level, score, seed };
+}
+
 /** Decode any GameBro save code and identify target game. */
 export function decodeAnySave(code: string): DecodedSave | null {
   const cleaned = code.replace(/[^0-9A-Fa-f]/g, '').toUpperCase();
@@ -158,6 +190,19 @@ export function decodeAnySave(code: string): DecodedSave | null {
     const cv = decodeCastleVein(payload);
     if (!cv) return null;
     return { gameId: 1, slug: 'castle-vein', castleVein: cv };
+  }
+
+  // SENTRY / The Triangle prefixed level saves
+  if ((firstNibble === 2 || firstNibble === 3) && cleaned.length >= 16) {
+    const payload = cleaned.slice(0, 14);
+    const checksum = cleaned.slice(14, 16) || nibbleChecksum(payload);
+    if (checksum !== nibbleChecksum(payload)) return null;
+    const data = decodePrefixedLevelSave(payload);
+    if (!data) return null;
+    if (firstNibble === 2) {
+      return { gameId: 2, slug: 'sentry', sentry: data };
+    }
+    return { gameId: 3, slug: 'the-triangle', theTriangle: data };
   }
 
   // Legacy Eye of the Deep

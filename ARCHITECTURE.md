@@ -19,7 +19,12 @@ src/
 ├── games/                  # Individual game implementations
 │   ├── registry.ts         # Central game list
 │   ├── eye-of-the-deep/    # Wireframe stealth title
-│   └── castle-vein/        # Metroidvania platformer
+│   ├── castle-vein/        # Metroidvania platformer
+│   ├── hidden-temples/     # Top-down jungle action RPG
+│   ├── war-pickle/         # Contra / Metal Slug run-and-gun
+│   ├── mighty-mudskipper/  # Mario × Sonic platformer
+│   ├── horizon/            # Horizontal mech shmup
+│   └── hooked/             # Fishing prototype
 └── styles/
     └── gameboy.css         # 4-shade palette + shell chrome
 ```
@@ -128,6 +133,18 @@ Sentinel-inspired first-person wireframe submarine game:
 ### Controls (documented choice)
 
 **Arcade-submarine hybrid**: turn-in-place steering (Left/Right), forward/back thrust along heading (no strafe). Depth adjusts subtly with A+Up/Down. This reads clearly on keyboard while suggesting underwater inertia.
+
+## Prototype Carts
+
+Five additional demos share the same `Game` contract, procedural bitmap sprites, and game-local chiptune sequencers:
+
+| Slug | Genre | Notes |
+|------|-------|-------|
+| `hidden-temples` | Top-down action RPG | Rain intro, jungle, 2 temples, machete/lantern, item+map screens |
+| `war-pickle` | Run-and-gun | 2 stages, weapon pickups, tank mini-boss |
+| `mighty-mudskipper` | Platformer | Dry Mario speed / mud Sonic speed, 3 stages |
+| `horizon` | Horizontal shmup | Mech + laser special, wave → boss |
+| `hooked` | Fishing | Visible fish, B strike window, tension reel, Select lure depth |
 
 ## Extracting the Engine
 

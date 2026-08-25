@@ -22,6 +22,8 @@ export {
   cylinderVertices,
   cylinderEdges,
 } from './renderer/WireframeRenderer';
+export { SolidMeshRenderer, BOX_FACES, coneMesh, cylinderFaces, solidBox, cross } from './renderer/SolidMeshRenderer';
+export type { FaceIndices, SolidFace } from './renderer/SolidMeshRenderer';
 export { TileMapRenderer, isSolidTile, isPlatformTile } from './renderer/TileMapRenderer';
 export type { TileDef, TileMapData } from './renderer/TileMapRenderer';
 export {
@@ -29,6 +31,7 @@ export {
   decodeSave,
   decodeAnySave,
   encodeCastleVeinSave,
+  encodePrefixedLevelSave,
   formatSaveCode,
   GAME_SAVE_IDS,
 } from './save/HexSaveSystem';
